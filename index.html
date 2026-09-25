@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Label-free cell counting and viability prediction from unstained brightfield images using deep learning.">
+  <title>Label-Free Cell Counting and Viability Prediction Using Brightfield Imaging and Deep Learning</title>
+
+  <meta property="og:title" content="Label-Free Cell Counting and Viability Prediction">
+  <meta property="og:description" content="Cell viability from unstained brightfield images, trained on stained samples.">
+  <meta property="og:image" content="assets/images/overview.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #2b3440;
+      --muted: #6b7684;
+      --paper: #ffffff;
+      --tint: #f4faf7;
+      --soft: #f5f7f9;
+      --line: #e4e9ee;
+      --accent: #1f8a6b;
+      --accent-soft: #e3f3ec;
+      --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+      --sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--paper); color: var(--ink);
+      font-family: var(--sans); font-size: 18px; line-height: 1.65;
+    }
+    a { color: var(--accent); }
+    a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    img { max-width: 100%; display: block; }
+
+    .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+    .narrow { max-width: 8500px; margin: 0 auto; }
+
+    /* ---------- Title block ---------- */
+    .hero { text-align: center; padding: 64px 0 40px; background: linear-gradient(var(--tint), var(--paper)); }
+    .hero h1 {
+      font-family: var(--serif); font-weight: 600;
+      font-size: clamp(1.8rem, 4.2vw, 2.7rem); line-height: 1.2; margin: 0 auto 24px; max-width: 22em;
+    }
+    .venue { color: var(--muted); font-size: 1.05rem; margin: 0 0 16px; }
+    .authors { font-size: 1.15rem; margin: 0 0 6px; }
+    .authors a { color: var(--accent); text-decoration: none; }
+    .authors a:hover { text-decoration: underline; }
+    .authors span { white-space: nowrap; margin: 0 8px; display: inline-block; }
+    .affiliations { color: var(--muted); font-size: 1rem; margin: 0 0 28px; }
+    .affiliations span { margin: 0 8px; display: inline-block; }
+
+    .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .links a {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent-soft); color: var(--accent); text-decoration: none;
+      border: 1px solid #c6e6d8;
+      padding: 8px 18px; border-radius: 999px; font-weight: 600; font-size: 0.98rem;
+    }
+    .links a:hover { background: #d3ecdf; }
+    .links svg { width: 18px; height: 18px; fill: currentColor; }
+
+    /* ---------- Sections ---------- */
+    section { padding: 20px 0; }
+    section + section { border-top: 1px solid var(--line); }
+    h2 { font-family: var(--serif); font-weight: 600; font-size: 1.75rem; text-align: center; margin: 0 0 20px; }
+    h3 { font-family: var(--serif); font-weight: 600; font-size: 1.2rem; margin: 32px 0 10px; }
+    p { margin: 0 0 16px; }
+    .justify { text-align: justify; hyphens: auto; }
+
+    figure { margin: 24px 0; }
+    figure img { width: 100%; border-radius: 6px; }
+    figure.medium img { max-width: 760px; margin: 0 auto; }
+    figcaption { color: var(--muted); font-size: 0.95rem; margin: 10px auto 0; max-width: 850px; text-align: justify; }
+    figcaption b { color: var(--ink); }
+
+    /* ---------- Tabs ---------- */
+    .tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 0 28px; }
+    .tabs button {
+      font: inherit; font-size: 0.95rem; padding: 7px 18px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+    }
+    .tabs button:hover { background: var(--soft); }
+    .tabs button[aria-selected="true"] { background: var(--accent-soft); color: var(--accent); border-color: #c6e6d8; font-weight: 600; }
+    .tab-panel[hidden] { display: none; }
+
+    /* ---------- Detection viewer ---------- */
+    .viewer { margin: 24px 0; }
+    .picker { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0 0 12px; }
+    .picker button {
+      font: inherit; font-size: 0.9rem; padding: 5px 16px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+    }
+    .picker button:hover { background: var(--soft); }
+    .picker button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: #c6e6d8; font-weight: 600; }
+    .picker-images button { min-width: 38px; padding: 3px 10px; font-size: 0.85rem; }
+    .viewer figure { margin-top: 8px; }
+    .viewer img { transition: opacity 0.15s; }
+    .viewer img.loading { opacity: 0.4; }
+
+    /* ---------- Table ---------- */
+    .table-scroll { overflow-x: auto; margin: 8px 0 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; white-space: nowrap; }
+    th, td { padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--line); }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    thead tr:last-child th { border-bottom: 2px solid var(--ink); }
+    thead tr:first-child th { border-bottom: none; padding-bottom: 0; color: var(--muted); font-weight: 600; }
+    td.best { font-weight: 600; color: var(--accent); }
+    .table-caption { color: var(--muted); font-size: 0.95rem; }
+
+    /* ---------- BibTeX ---------- */
+    .bibtex { position: relative; }
+    .bibtex pre {
+      background: var(--soft); border: 1px solid var(--line); border-radius: 6px;
+      padding: 18px 20px; overflow-x: auto; font-family: var(--mono); font-size: 0.86rem; line-height: 1.5; margin: 0;
+    }
+    .bibtex button {
+      position: absolute; top: 10px; right: 10px; font: inherit; font-size: 0.85rem;
+      padding: 4px 12px; border-radius: 6px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+    }
+
+    footer { border-top: 1px solid var(--line); padding: 28px 0 40px; text-align: center; color: var(--muted); font-size: 0.9rem; }
+    footer p { margin: 0; }
+
+    @media (max-width: 640px) {
+      body { font-size: 17px; }
+      .hero { padding-top: 40px; }
+      .justify, figcaption { text-align: left; }
+    }
+
+    /* ---------- Paper-style table ---------- */
+    .paper-table {
+      width: 100%; border-collapse: collapse; white-space: nowrap;
+      font-family: var(--serif); font-size: 0.9rem; color: var(--ink);
+      border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+    }
+    .paper-table th, .paper-table td {
+      padding: 5px 10px; border: none; text-align: center;
+      font-weight: 400; color: var(--ink); vertical-align: middle;
+    }
+    .paper-table thead tr:first-child th { padding: 6px 10px 4px; border-bottom: none; font-weight: 400; color: var(--ink); }
+    .paper-table thead tr:last-child th { border-bottom: 1px solid var(--ink); }
+    .paper-table th.samples { border-bottom: 1px solid var(--ink); }
+    .paper-table th.group {
+      background: linear-gradient(var(--ink), var(--ink)) center bottom / calc(100% - 16px) 1px no-repeat;
+    }
+    .paper-table tbody td { text-align: center; }
+    .paper-table tbody td.split, .paper-table tbody td.label { text-align: left; }
+    .paper-table tr.split-start + tr.split-start td { border-top: 1px solid var(--ink); }
+    .paper-table td.best { font-weight: 700; color: var(--ink); }
+  </style>
+</head>
+<body>
+
+  <!-- =================== TITLE, AUTHORS, LINKS =================== -->
+  <header class="hero">
+    <div class="container">
+      <h1>Label-Free Cell Counting and Viability Prediction Using Brightfield Imaging and Deep Learning</h1>
+
+      <p class="venue">Preprint, 2026</p>
+
+      <p class="authors">
+        <span><a href="https://amirrezavazifeh.github.io/">Amir Reza Vazifeh</a><sup>1</sup></span>
+        <span><a href="https://www.linkedin.com/in/christian-zeigler/">Christian Zeigler</a><sup>2</sup></span>
+        <span><a href="https://www.linkedin.com/in/meyyappan-s/">Sornanathan Meyyappan</a><sup>2</sup></span>
+        <span><a href="https://www.linkedin.com/in/rich-jeske-phd-787a92379/">Richard Jeske</a><sup>2</sup></span>
+        <span><a href="https://ece.princeton.edu/people/jason-w-fleischer">Jason W. Fleischer</a><sup>1</sup></span>
+      </p>
+      <p class="affiliations">
+        <span><sup>1</sup>Department of Electrical and Computer Engineering, Princeton University</span>
+        <span><sup>2</sup>Waters Corporation</span>
+      </p>
+
+      <!-- arXiv, Software Demo and Code still need real links -->
+      <div class="links">
+        <a href="">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6V2zm8 1.5V8h4.5L14 3.5zM8 12h8v1.5H8V12zm0 3h8v1.5H8V15zm0 3h5v1.5H8V18z"/></svg>
+          arXiv
+        </a>
+        <a href="https://amirrezavazifeh.github.io/ViabiLens/">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v12H3V4zm2 2v8h14V6H5zm3 12h8v2H8v-2z"/></svg>
+          Software Demo
+        </a>
+        <a href="https://drive.google.com/drive/folders/1DSXqkcN3juqFSIvHcrvivrMI5INr9hHh?usp=drive_link">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C7 2 3 3.8 3 6v12c0 2.2 4 4 9 4s9-1.8 9-4V6c0-2.2-4-4-9-4zm0 2c4.4 0 7 1.4 7 2s-2.6 2-7 2-7-1.4-7-2 2.6-2 7-2zM5 9.2C6.6 10 9.2 10.5 12 10.5s5.4-.5 7-1.3V12c0 .6-2.6 2-7 2s-7-1.4-7-2V9.2zm0 6C6.6 16 9.2 16.5 12 16.5s5.4-.5 7-1.3V18c0 .6-2.6 2-7 2s-7-1.4-7-2v-2.8z"/></svg>
+          Dataset
+        </a>
+        <a href="#">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17 4.6 18 5 18 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>
+          Code
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- =================== OVERVIEW =================== -->
+    <section id="overview">
+      <div class="narrow">
+        <h2>Overview</h2>
+        <p class="justify">
+          Cell viability assessment is a core requirement in cell culture systems, with critical applications in biopharmaceutical
+          manufacturing and drug development. Conventionally, it is measured by adding membrane-impermeable dyes to a sample (a process
+          called staining), which allows intact and compromised cell membranes to be distinguished. However, staining has several
+          limitations: (a) chemical agents can perturb normal cellular processes of the cells being measured, (b) it is often ambiguous to
+          assign viability to individual cells whose membrane integrity is only partially compromised, (c) photobleaching can undermine
+          measurement accuracy over time when using fluorescent stains, and (d) staining cannot be performed in situ or in real time.
+        </p>
+        <p class="justify">
+          <!-- Replace # with the ViabiLens link -->
+          Here, we report the development and validation of <a href="https://amirrezavazifeh.github.io/ViabiLens/" target="_blank" rel="noopener"><b>ViabiLens</b></a>, AI-assisted software for label-free cell viability analysis. 
+          ViabiLens combines a cell detection model for localizing individual cells with a convolutional neural network (CNN) classifier for 
+          live/dead prediction, paired with an interactive UMAP-based viewer for visualizing and exploring individual cells across the sample.
+          Evaluated on Chinese Hamster Ovary (CHO) cells spanning a wide range of viability conditions, ViabiLens achieves a mean absolute
+          error of 2.68% on unstained samples against fluorescence-based reference measurements.
+        </p>
+      </div>
+      <figure>
+        <img src="assets/images/overview.png" alt="Traditional stain-based viability measurement compared with the proposed label-free deep learning pipeline">
+        <figcaption>
+          <b>Comparison of traditional and proposed methods for cell viability assessment.</b> Left: a bioreactor used for cell culture.
+          Middle: traditionally, cells are stained and fluorescently imaged to distinguish live from dead cells. Right: the proposed
+          deep-learning-based method detects and classifies individual cells as live or dead directly from brightfield images, without
+          staining or fluorescence imaging. In either case, sample-level viability is computed as the ratio of live cells to the total
+          cell count.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- =================== METHOD =================== -->
+    <section id="method">
+      <div class="narrow">
+        <h2>Method</h2>
+        <p class="justify">
+          Our pipeline consists of two stages: an object detection model for localizing individual cells, followed by a CNN classifier to
+          predict their viability. Both models are trained on stained samples and then applied unchanged to unstained ones.
+        </p>
+
+        <h3>Dataset</h3>
+        <p class="justify">
+          CHO cells were grown in fed-batch cultures over two weeks and sampled at multiple time points to cover the
+          range of viabilities seen in bioprocessing. Samples were stained with acridine orange (AO) and propidium iodide (PI) and imaged on a
+          Cellaca™ PLX image cytometer, which provides a brightfield image, two fluorescence images, and a bounding box and live/dead label for
+          every stained cell. In total, we collected 75 stained images at a resolution of 2080&nbsp;×&nbsp;2784 pixels (1.37&nbsp;mm&nbsp;×&nbsp;1.84&nbsp;mm).
+          For 15 of these samples, we also captured an unstained brightfield image immediately before adding the dye. The remaining 60 stained
+          images were used for training, and the 15 stained/unstained pairs were held out for testing and never used in training.
+          <!-- Replace # with the dataset link -->
+          The dataset is publicly available <a href="https://drive.google.com/drive/folders/1DSXqkcN3juqFSIvHcrvivrMI5INr9hHh?usp=drive_link" target="_blank" rel="noopener">here</a>.
+        </p>
+
+        <h3>Cell detection</h3>
+        <p class="justify">
+          Because the dataset provides bounding boxes, we trained a Faster R-CNN object detector, pretrained on the COCO dataset and
+          fine-tuned to separate cells from background using the PLX bounding boxes as ground truth. Training on full-resolution images
+          performed poorly because each cell occupies only a few pixels of a large image. We therefore divided each training image into
+          overlapping crops, so that cells take up a meaningful share of each input.
+        </p>
+        <p class="justify">
+          At inference, the full image is split into overlapping crops of the same size used in training, and the detector runs on each crop
+          separately. Combining these results requires solving three problems. First, a cell on the edge of a crop is only partly visible.
+          To handle this, neighboring crops overlap so that every cell appears whole in at least one crop, and we keep only boxes that lie
+          fully inside the central region of each crop. Second, the detector may return several overlapping boxes for the same cell. Within
+          each crop, non-maximum suppression (NMS) keeps the most confident box and removes the rest. Third, because crops overlap, the same
+          cell can be detected in two neighboring crops. After all boxes are moved back to full-image coordinates, a second round of NMS
+          removes these duplicates, leaving one box per cell.
+        </p>
+
+        <h3>Cell classification</h3>
+        <p class="justify">
+          Each detected cell is resized to a fixed-size patch and passed to a compact CNN, trained on about 137,000 PLX-labeled stained
+          cells, that outputs the probability of the cell being live or dead. Cells are labeled using a 0.5 decision threshold. The trained
+          model can be applied to both stained and unstained cells. Sample viability is the fraction of cells predicted live.
+        </p>
+      </div>
+      <figure>
+        <img src="assets/images/method.jpg" alt="Cell detection and classification pipeline">
+        <figcaption>
+          <b>Overview of the cell detection and viability analysis pipeline.</b> The brightfield image is divided into overlapping crops
+          (red shading marks overlap with neighboring crops). Each crop is fed to the trained detector, and only boxes fully inside the green
+          frame are kept, so incomplete cells at the edges are discarded. Duplicate detections are removed with non-maximum suppression, first
+          within each crop and again after mapping boxes back to the full image. Each detected cell is then resized and classified as live or
+          dead by the CNN.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- =================== RESULTS (tabs) =================== -->
+    <section id="results">
+      <h2>Results</h2>
+
+      <div class="tabs" role="tablist" aria-label="Results">
+        <button role="tab" id="tab-livedead" aria-selected="true"  aria-controls="panel-livedead">Live/Dead Differences</button>
+        <button role="tab" id="tab-stained"  aria-selected="false" aria-controls="panel-stained">Stained/Unstained Differences</button>
+        <button role="tab" id="tab-classify" aria-selected="false" aria-controls="panel-classify">Classification Performance</button>
+        <button role="tab" id="tab-detect"   aria-selected="false" aria-controls="panel-detect">Cell Detection Performance</button>
+        <button role="tab" id="tab-e2e"      aria-selected="false" aria-controls="panel-e2e">End-to-End Evaluation</button>
+        <button role="tab" id="tab-zeiss"    aria-selected="false" aria-controls="panel-zeiss">Generalization Under Different Imaging</button>
+      </div>
+
+      <!-- ---------- Live/Dead ---------- -->
+      <div class="tab-panel" id="panel-livedead" role="tabpanel" aria-labelledby="tab-livedead">
+        <div class="narrow">
+          <p class="justify">
+            A key assumption of our approach is that live and dead cells look different enough in brightfield for a model to tell them apart.
+            To test this, we took individual cells from the 60 training images, labeled by PLX, and embedded them in 2D with PCA, t-SNE and
+            UMAP, without access to the labels. PCA, a linear method, shows substantial overlap, while t-SNE and UMAP clearly separate live and
+            dead populations. A k-nearest-neighbor classifier on these embeddings reaches about 95% accuracy (F1-score of about 0.80), similar
+            to running it on the original cells, which shows that the separation reflects real structure in the data. In the Fourier domain,
+            live cells show stronger high-frequency content, consistent with sharper membranes and denser intracellular structure, while dead
+            cells have smoother, more diffuse profiles.
+          </p>
+        </div>
+        <figure>
+          <img src="assets/images/live_dead.jpg" alt="PCA, t-SNE and UMAP embeddings of live and dead cells, with average Fourier spectra">
+          <figcaption>
+            <b>Live (green) vs. dead (orange) cells.</b> Top: 2D embeddings and k-NN accuracy. Bottom: average Fourier spectra and their
+            cross-sections.
+          </figcaption>
+        </figure>
+        <div class="narrow">
+          <h3>Unsupervised phenotyping</h3>
+          <p class="justify">
+            UMAP also splits dead cells into two distinct groups. White, featureless cells that have lost intracellular content (red) may
+            reflect a later stage of cell death, while heterogeneous cells with a faint membrane outline (blue) may reflect an earlier stage.
+            Unlike a supervised classifier, which collapses all dead cells into one label, the embedding preserves this diversity without any
+            labels. A separate cluster (cyan) collects irregular crops, such as overlapping cells or detection errors. Removing these outliers
+            improves dataset quality and leads to more consistent training.
+          </p>
+        </div>
+        <figure>
+          <img src="assets/images/phenotyping.jpg" alt="UMAP clusters with representative cell patches">
+          <figcaption><b>UMAP clusters with example cells.</b> Green and yellow frames mark live and dead labels, respectively.</figcaption>
+        </figure>
+      </div>
+
+      <!-- ---------- Stained/Unstained ---------- -->
+      <div class="tab-panel" id="panel-stained" role="tabpanel" aria-labelledby="tab-stained" hidden>
+        <div class="narrow">
+          <p class="justify">
+            Another key assumption is that unstained cells look enough like stained ones for a model trained on stained images to generalize.
+            This is also why we use fluorescent stains for ground truth rather than visible stains such as trypan blue, which would change the
+            brightfield appearance of cells. To test this, we compared stained and unstained cells from the same bioreactor samples, extracted
+            with our trained detector. The cells are unpaired, since adding the stain disturbs their positions and the same cell cannot be
+            tracked before and after staining. In PCA, t-SNE and UMAP embeddings, the two populations intermix. A k-nearest-neighbor
+            classifier trying to tell them apart stays close to chance (about 56–68%), even on the original cells, compared with about 95%
+            for live versus dead. Their average Fourier spectra are also closely matched, indicating that staining does not substantially
+            alter cell appearance in brightfield.
+          </p>
+        </div>
+        <figure>
+          <img src="assets/images/stained_unstained.jpg" alt="Embeddings, example cells and Fourier spectra of stained and unstained cells">
+          <figcaption>
+            <b>Stained (blue) vs. unstained (red) cells.</b> Middle row: unpaired examples from each population.
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- ---------- Cell Classification ---------- -->
+      <div class="tab-panel" id="panel-classify" role="tabpanel" aria-labelledby="tab-classify" hidden>
+        <div class="narrow">
+          <p class="justify">
+            The classifier was trained on cells extracted from the 60 stained training images, with 80% of the cells used for training and
+            20% held out for validation. It reaches 98.64% accuracy (F1-score&nbsp;=&nbsp;0.94) on the training set and 98.10% accuracy
+            (F1-score&nbsp;=&nbsp;0.92) on the validation set, with ROC AUC values of 0.998 and 0.996, respectively. Training and validation
+            curves track each other closely, with no sign of overfitting.
+          </p>
+        </div>
+        <figure>
+          <img src="assets/images/classifier.png" alt="Confusion matrices, ROC and precision-recall curves, and training curves">
+          <figcaption>
+            <b>Classifier performance.</b> Left: confusion matrices. Middle: ROC and precision-recall curves. Right: loss and accuracy
+            during training.
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- ---------- Cell Detection ---------- -->
+      <div class="tab-panel" id="panel-detect" role="tabpanel" aria-labelledby="tab-detect" hidden>
+        <div class="narrow">
+          <h3>Qualitative Comparison</h3>
+          <p class="justify">
+            We compare our detector with the PLX image cytometer, a classical image-processing pipeline and pretrained Cellpose. Image
+            processing merges clumped cells, and Cellpose struggles with white (mostly dead) cells. PLX misses a noticeable number of cells,
+            yet these cells still appear in the fluorescence channels, suggesting that the omissions stem from the PLX detection algorithm
+            rather than any biological difference. Our model resolves cells even in tightly clustered regions and returns a confidence score
+            for each detected cell, which can be used to filter out low-confidence detections.
+          </p>
+        </div>
+        <!-- Interactive detection viewer -->
+        <div class="viewer">
+          <div class="picker" id="det-type" aria-label="Sample type">
+            <button type="button" data-type="stained" aria-pressed="true">Stained</button>
+            <button type="button" data-type="unstained" aria-pressed="false">Unstained</button>
+          </div>
+          <div class="picker picker-images" id="det-images" aria-label="Image"></div>
+          <figure>
+            <img id="det-img" src="assets/images/Detection/Stained/0_paper.png" alt="Detection results on stained sample 1">
+            <figcaption id="det-caption"></figcaption>
+          </figure>
+        </div>
+        <div class="narrow">
+          <h3>Quantitative Comparison</h3>
+          <p class="justify">
+            For cell counts, our method detects approximately 20% more cells than the PLX measurement on the training set. Visual inspection
+            across different samples suggests that our method is able to recover missed or inaccurate bounding boxes, which indicates that
+            training on a large set of imperfect annotations may allow a deep learning model to generalize beyond individual annotation errors.
+            However, this observation is based on visual inspection and requires further investigation to confirm. In addition, although
+            Cellpose detects slightly more cells than our method on the test set, visual inspection indicates that some of these detections
+            correspond to very small false-positive cells or large bounding boxes that do not correspond to individual cells. Overall, our
+            method achieves the best precision, recall and F1-score, with mAP&nbsp;≥&nbsp;0.9 on both the training and test sets.
+          </p>
+          <div class="table-scroll">
+            <table class="paper-table">
+              <thead>
+                <tr>
+                  <th colspan="2" rowspan="2" class="samples">Samples</th>
+                  <th colspan="4" class="group">Total Cell Count</th>
+                  <th colspan="3" class="group">Precision / Recall / F1</th>
+                  <th class="group">mAP</th>
+                </tr>
+                <tr>
+                  <th>PLX</th><th>Img. Proc.</th><th>Cellpose</th><th>Ours</th>
+                  <th>Img. Proc.</th><th>Cellpose</th><th>Ours</th>
+                  <th>Ours</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="split-start">
+                  <td class="split">Train</td><td class="label">45 stained samples</td>
+                  <td>109,472</td><td>105,140</td><td>114,716</td><td>132,680</td>
+                  <td>0.56 / 0.52 / 0.53</td><td>0.76 / 0.89 / 0.81</td><td class="best">0.84 / 0.95 / 0.89</td>
+                  <td>0.90</td>
+                </tr>
+                <tr class="split-start">
+                  <td class="split" rowspan="2">Test</td><td class="label">30 stained samples</td>
+                  <td>32,543</td><td>29,000</td><td>33,868</td><td>33,083</td>
+                  <td>0.80 / 0.73 / 0.76</td><td>0.80 / 0.83 / 0.81</td><td class="best">0.92 / 0.95 / 0.94</td>
+                  <td>0.93</td>
+                </tr>
+                <tr>
+                  <td class="label">15 unstained samples</td>
+                  <td>NA</td><td>14,305</td><td>17,767</td><td>16,889</td>
+                  <td>NA</td><td>NA</td><td>NA</td>
+                  <td>NA</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="table-caption">PLX serves as the reference. It only annotates stained samples, so unstained metrics beyond cell count are not available.</p>
+
+          <h3>Robustness across focal planes</h3>
+          <p class="justify">
+            Cell appearance can vary across focal planes, and the detection model should remain robust to such focus-dependent changes. On a
+            focal stack of the same field of view, the detector consistently finds a similar number of cells across the full focal range. 
+            The viability classifier is more sensitive to focus because it was not trained on all focal planes. This is why predicted viability 
+            drops in the most defocused planes. Note that cells move slightly during acquisition, so they are not perfectly
+            registered between planes.
+          </p>
+        </div>
+        <figure>
+          <video autoplay muted loop playsinline controls poster="assets/images/focal_stack.jpg"
+                 style="width: 100%; max-width: 500px; margin: 0 auto; display: block; border-radius: 6px;">
+            <source src="assets/images/focal_stack.mp4" type="video/mp4">
+          </video>
+        </figure>
+      </div>
+
+      <!-- ---------- End-to-end ---------- -->
+      <div class="tab-panel" id="panel-e2e" role="tabpanel" aria-labelledby="tab-e2e" hidden>
+        <div class="narrow">
+          <p class="justify">
+            We applied the full pipeline to the 15 held-out stained/unstained pairs, using the PLX viability of each stained sample as the
+            reference for both. On <b>unstained</b> samples, ViabiLens reaches a mean absolute error of 2.68% (R²&nbsp;=&nbsp;0.85), and on
+            stained samples 3.57% (R²&nbsp;=&nbsp;0.82). Stained predictions fall slightly below PLX, likely because our detector finds extra
+            cells that tend to have lower viability. A population-level UMAP analysis reveals four morphologically distinct clusters in both
+            conditions: sharp, well-defined cells that are predominantly live (Cluster 1), featureless, translucent cells lacking internal
+            structure (Cluster 2), fuzzy, blurred cells that make up most dead cells (Cluster 3), and patches with multiple adjoining cells,
+            likely undergoing division (Cluster 4). This correspondence suggests that the visual features distinguishing live and dead cells
+            are largely preserved between stained and unstained imaging.
+          </p>
+        </div>
+        <figure>
+          <img src="assets/images/viability_unstained.jpg" alt="Predicted vs. measured viability and UMAP clusters for unstained samples">
+          <figcaption>
+            <b>Unstained samples.</b> Left: predicted viability vs. PLX measurement on the paired stained sample. Right: UMAP of cells
+            labeled by the CNN, with example cells from each cluster below.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="assets/images/viability_stained.jpg" alt="Predicted vs. measured viability and UMAP clusters for stained samples">
+          <figcaption>
+            <b>Stained samples.</b> Left: predicted viability vs. PLX measurement. Right: UMAP of cells labeled by PLX, with example cells
+            from each cluster below.
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- ---------- Generalization (Zeiss) ---------- -->
+      <div class="tab-panel" id="panel-zeiss" role="tabpanel" aria-labelledby="tab-zeiss" hidden>
+        <div class="narrow">
+          <p class="justify">
+            To test whether the approach carries over to other hardware, we repeated the experiments on a higher-resolution Zeiss microscope.
+          </p>
+          <p class="justify">
+            <b>Dataset.</b> Samples were taken from a fed-batch bioreactor culture over two weeks (days 1, 4, 6, 8, 11, 12, 13 and 14) and
+            imaged on a Zeiss Axio Observer microscope (EC Plan-Neofluar 10×/0.30 Ph1 objective) at a resolution of
+            9684&nbsp;×&nbsp;11604&nbsp;pixels. Each sample was captured in brightfield, phase contrast and reflected brightfield at five focal
+            planes, with the middle plane in focus, giving 11 stained and 15 unstained images in total. For stained samples, two fluorescence
+            channels (AO and PI) provide live/dead labels.
+          </p>
+        </div>
+        <figure class="medium">
+          <img src="assets/images/zeiss_examples.jpg" alt="Zeiss images in brightfield, phase and reflected brightfield across five focal planes, with live and dead cell examples">
+          <figcaption>
+            <b>Zeiss imaging modalities.</b> Top: the same field of view in brightfield, phase and reflected brightfield across five focal
+            planes. Bottom: live and dead cells in each modality, with their fluorescence channels.
+          </figcaption>
+        </figure>
+        <div class="narrow">
+          <p class="justify">
+            <b>Cell detection.</b> Since Cellpose already performs well on this dataset, we used it for detection instead of training a
+            dedicated detector. Bounding boxes from the in-focus brightfield plane were applied to all modalities and focal planes, so the
+            same cells are used throughout, giving 85,504 stained cells in total.
+          </p>
+          <p class="justify">
+            <b>Cell classification.</b> The cells were split into 80% for training and 20% for validation. Unlike the PLX pipeline, which uses
+            brightfield only, the classifier takes both brightfield and phase images of each cell as input. It reaches 96.06% training
+            accuracy (F1-score&nbsp;=&nbsp;0.89) and 95.28% validation accuracy (F1-score&nbsp;=&nbsp;0.87).
+          </p>
+        </div>
+        <figure>
+          <img src="assets/images/classification_ZEISS.jpg" alt="Zeiss classifier architecture with brightfield and phase inputs, confusion matrices, ROC and precision-recall curves, and training curves">
+          <figcaption>
+            <b>Zeiss classifier.</b> Top: the CNN takes brightfield and phase images of each cell as input. Bottom: confusion matrices,
+            ROC and precision-recall curves, and training curves.
+          </figcaption>
+        </figure>
+        <div class="narrow">
+          <p class="justify">
+            <b>End-to-end evaluation.</b> The same samples were also imaged on the PLX image cytometer, and its reported viability serves as
+            the reference measurement. On the 11 stained images, predicted viability matches the PLX measurement with a mean absolute error
+            of 2.06% (R²&nbsp;=&nbsp;0.94). On the 15 unstained images, which were held out from training, the mean absolute error is 3.08%
+            (R²&nbsp;=&nbsp;0.83). In the UMAP embeddings, live and dead cells form clearly separated clusters for stained samples. For
+            unstained samples, predicted dead cells still tend to cluster together, suggesting that the classifier generalizes beyond stained
+            data.
+          </p>
+        </div>
+        <figure>
+          <img src="assets/images/zeiss_viability.jpg" alt="Predicted vs. measured viability and UMAP projections for Zeiss stained and unstained samples">
+          <figcaption>
+            <b>Zeiss viability results.</b> Left: predicted viability vs. PLX measurement for stained (top) and unstained (bottom) samples.
+            Right: UMAP projections of live and dead cells in brightfield and phase.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- =================== SOFTWARE =================== -->
+    <section id="software">
+      <div class="narrow">
+        <h2>Software</h2>
+        <p class="justify">
+          To facilitate assessment and interactive benchmarking of the pipeline, we developed
+          <a href="#" target="_blank" rel="noopener"><b>ViabiLens</b></a>, an interactive HTML-based platform. It visualizes different
+          imaging modalities side by side with adjustable brightness, contrast, and magnification, and overlays detected cells from all
+          four methods for direct comparison. A UMAP projection of the sample shows AI-predicted viability, where hovering over a point
+          previews that cell, and a summary table reports sample-level viability. Beyond its utility as a research tool for testing and
+          refining methods, the platform is functional software with potential commercial application.
+        </p>
+      </div>
+      <figure>
+        <img src="assets/images/software.jpg" alt="Screenshot of the ViabiLens Cell Viability Viewer interface">
+        <figcaption>
+          <b>ViabiLens</b>, an interactive platform for label-free cell viability analysis.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- =================== BIBTEX =================== -->
+    <section id="bibtex">
+      <div class="narrow">
+        <h2>BibTeX</h2>
+        <div class="bibtex">
+          <button type="button" id="copy-bib">Copy</button>
+<pre id="bib">@article{vazifeh2026viabilens,
+  title   = {Label-Free Cell Counting and Viability Prediction Using Brightfield Imaging and Deep Learning},
+  author  = {Vazifeh, Amir Reza and Zeigler, Christian and Meyyappan, Sornanathan and Jeske, Richard and Fleischer, Jason W.},
+  journal = {arXiv},
+  year    = {2026}
+}</pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Contact: <a href="mailto:amir.vazifeh@princeton.edu">amir.vazifeh@princeton.edu</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // Results tabs
+    (function () {
+      const tabs = document.querySelectorAll('.tabs [role="tab"]');
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          tabs.forEach(function (t) {
+            const selected = t === tab;
+            t.setAttribute("aria-selected", selected ? "true" : "false");
+            document.getElementById(t.getAttribute("aria-controls")).hidden = !selected;
+          });
+        });
+      });
+    })();
+
+    // Copy BibTeX
+    document.getElementById("copy-bib").addEventListener("click", function () {
+      const btn = this;
+      navigator.clipboard.writeText(document.getElementById("bib").textContent).then(function () {
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+      });
+    });
+
+    // Detection viewer: choose stained/unstained, then an image
+    (function () {
+      const sets = {
+        stained: {
+          count: 20,
+          path: function (i) { return "assets/images/Detection/Stained/" + i + "_paper.png"; },
+          caption: "<b>Stained sample.</b> PLX reference with its fluorescence channels, and detections from image processing, Cellpose and our model."
+        },
+        unstained: {
+          count: 6,
+          path: function (i) { return "assets/images/Detection/Unstained/" + i + "_unstained_paper.png"; },
+          caption: "<b>Unstained sample.</b> Detections from image processing, Cellpose and our model. PLX cannot be used on unstained samples."
+        }
+      };
+      const typeBox = document.getElementById("det-type");
+      const imgBox = document.getElementById("det-images");
+      const img = document.getElementById("det-img");
+      const caption = document.getElementById("det-caption");
+      let type = "stained";
+      let index = 0;
+
+      function show() {
+        const set = sets[type];
+        img.classList.add("loading");
+        img.src = set.path(index);
+        img.alt = "Detection results on " + type + " sample " + (index + 1);
+        caption.innerHTML = set.caption;
+        imgBox.querySelectorAll("button").forEach(function (b, i) {
+          b.setAttribute("aria-pressed", i === index ? "true" : "false");
+        });
+      }
+
+      function buildImageButtons() {
+        imgBox.innerHTML = "";
+        for (let i = 0; i < sets[type].count; i++) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = i + 1;
+          b.addEventListener("click", function () { index = i; show(); });
+          imgBox.appendChild(b);
+        }
+      }
+
+      typeBox.querySelectorAll("button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          type = b.dataset.type;
+          index = 0;
+          typeBox.querySelectorAll("button").forEach(function (x) {
+            x.setAttribute("aria-pressed", x === b ? "true" : "false");
+          });
+          buildImageButtons();
+          show();
+        });
+      });
+
+      img.addEventListener("load", function () { img.classList.remove("loading"); });
+      img.addEventListener("error", function () { img.classList.remove("loading"); });
+      buildImageButtons();
+      show();
+    })();
+  </script>
+</body>
+</html>
