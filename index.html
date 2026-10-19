@@ -154,6 +154,26 @@
     .paper-table tbody td.split, .paper-table tbody td.label { text-align: left; }
     .paper-table tr.split-start + tr.split-start td { border-top: 1px solid var(--ink); }
     .paper-table td.best { font-weight: 700; color: var(--ink); }
+    /* ---------- LaTeX (booktabs) style table ---------- */
+    .latex-table {
+      width: 100%; border-collapse: collapse; white-space: nowrap;
+      font-family: var(--serif); font-size: 0.9rem; line-height: 1.25; color: var(--ink);
+      border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+    }
+    .latex-table th, .latex-table td,
+    .latex-table th:first-child, .latex-table td:first-child,
+    .latex-table th:nth-child(2), .latex-table td:nth-child(2) {
+      padding: 1px 10px; border: none; text-align: center;
+      font-weight: 400; color: var(--ink); vertical-align: middle;
+    }
+    .latex-table thead tr:first-child th {
+      padding: 6px 10px; font-weight: 400; color: var(--ink);
+      border-bottom: 1px solid var(--ink);
+    }
+    .latex-table tbody + tbody { border-top: 1px solid var(--ink); }
+    .latex-table tbody tr:first-child td { padding-top: 6px; }
+    .latex-table tbody tr:last-child td { padding-bottom: 6px; }
+    .latex-table td.best { font-weight: 700; color: var(--ink); }
   </style>
 </head>
 <body>
@@ -245,22 +265,26 @@
 
         <h3>Dataset</h3>
         <p class="justify">
-          CHO cells were grown in fed-batch cultures over two weeks and sampled at multiple time points to cover the
-          range of viabilities seen in bioprocessing. Samples were stained with acridine orange (AO) and propidium iodide (PI) and imaged on a
-          Cellaca™ PLX image cytometer, which provides a brightfield image, two fluorescence images, and a bounding box and live/dead label for
-          every stained cell. In total, we collected 75 stained images at a resolution of 2080&nbsp;×&nbsp;2784 pixels (1.37&nbsp;mm&nbsp;×&nbsp;1.84&nbsp;mm).
-          For 15 of these samples, we also captured an unstained brightfield image immediately before adding the dye. The remaining 60 stained
-          images were used for training, and the 15 stained/unstained pairs were held out for testing and never used in training.
+          CHO cells were mixed 1:1 (v/v) with ViaStain™ AO-PI staining solution (Revvity) and incubated for 10 minutes before
+          imaging on a Cellaca™ PLX image cytometer. Each image is 2080&nbsp;×&nbsp;2784 pixels, covering a
+          1.37&nbsp;mm&nbsp;×&nbsp;1.84&nbsp;mm field of view. For every stained sample, the instrument provides a brightfield image,
+          two fluorescence images acquired in separate channels for acridine orange (AO; 470/532&nbsp;nm excitation/emission, 15&nbsp;ms exposure)
+          and propidium iodide (PI; 531/655&nbsp;nm, 40&nbsp;ms exposure), a bounding box for each cell, and a live/dead label for each cell.
+          We use these bounding boxes and viability labels as training annotations.
+          Images were collected from two independent CHO cell culture runs performed at different times. The training set consists of
+          45 stained images from the first run. From the second run, we acquired 15 stained images, each paired with an unstained brightfield
+          image captured immediately before dye addition (unstained images have no fluorescence channels or annotations). These 15
+          stained/unstained pairs form a held-out test set that was never used at any stage of training.
           <!-- Replace # with the dataset link -->
           The dataset is publicly available <a href="https://drive.google.com/drive/folders/1DSXqkcN3juqFSIvHcrvivrMI5INr9hHh?usp=drive_link" target="_blank" rel="noopener">here</a>.
         </p>
 
         <h3>Cell detection</h3>
         <p class="justify">
-          Because the dataset provides bounding boxes, we trained a Faster R-CNN object detector, pretrained on the COCO dataset and
-          fine-tuned to separate cells from background using the PLX bounding boxes as ground truth. Training on full-resolution images
-          performed poorly because each cell occupies only a few pixels of a large image. We therefore divided each training image into
-          overlapping crops, so that cells take up a meaningful share of each input.
+          Because the dataset provides bounding boxes, we trained an <a href="https://github.com/roboflow/rf-detr" target="_blank" rel="noopener">RF-DETR</a>
+          object detector, pretrained on the COCO dataset and fine-tuned to separate cells from background using the PLX bounding boxes as
+          ground truth. Training on full-resolution images performed poorly because each cell occupies only a few pixels of a large image.
+          We therefore divided each training image into overlapping crops, so that cells take up a meaningful share of each input.
         </p>
         <p class="justify">
           At inference, the full image is split into overlapping crops of the same size used in training, and the detector runs on each crop
@@ -274,7 +298,7 @@
 
         <h3>Cell classification</h3>
         <p class="justify">
-          Each detected cell is resized to a fixed-size patch and passed to a compact CNN, trained on about 137,000 PLX-labeled stained
+          Each detected cell is resized to a fixed-size patch and passed to a compact CNN, trained on about 112,947 PLX-labeled stained
           cells, that outputs the probability of the cell being live or dead. Cells are labeled using a 0.5 decision threshold. The trained
           model can be applied to both stained and unstained cells. Sample viability is the fraction of cells predicted live.
         </p>
@@ -309,9 +333,9 @@
         <div class="narrow">
           <p class="justify">
             A key assumption of our approach is that live and dead cells look different enough in brightfield for a model to tell them apart.
-            To test this, we took individual cells from the 60 training images, labeled by PLX, and embedded them in 2D with PCA, t-SNE and
+            To test this, we took individual cells from the 45 training images, labeled by PLX, and embedded them in 2D with PCA, t-SNE and
             UMAP, without access to the labels. PCA, a linear method, shows substantial overlap, while t-SNE and UMAP clearly separate live and
-            dead populations. A k-nearest-neighbor classifier on these embeddings reaches about 95% accuracy (F1-score of about 0.80), similar
+            dead populations. A k-nearest-neighbor classifier on these embeddings reaches about 97% accuracy (F1-score of about 0.85), similar
             to running it on the original cells, which shows that the separation reflects real structure in the data. In the Fourier domain,
             live cells show stronger high-frequency content, consistent with sharper membranes and denser intracellular structure, while dead
             cells have smoother, more diffuse profiles.
@@ -327,10 +351,10 @@
         <div class="narrow">
           <h3>Unsupervised phenotyping</h3>
           <p class="justify">
-            UMAP also splits dead cells into two distinct groups. White, featureless cells that have lost intracellular content (red) may
-            reflect a later stage of cell death, while heterogeneous cells with a faint membrane outline (blue) may reflect an earlier stage.
+            UMAP also splits dead cells into two distinct groups. White, featureless cells that have lost intracellular content (cluster 2) may
+            reflect a later stage of cell death, while heterogeneous cells with a faint membrane outline (cluster 3) may reflect an earlier stage.
             Unlike a supervised classifier, which collapses all dead cells into one label, the embedding preserves this diversity without any
-            labels. A separate cluster (cyan) collects irregular crops, such as overlapping cells or detection errors. Removing these outliers
+            labels. A few small clusters (4-7) collects irregular crops, such as overlapping cells or detection errors. Removing these outliers
             improves dataset quality and leads to more consistent training.
           </p>
         </div>
@@ -349,7 +373,7 @@
             brightfield appearance of cells. To test this, we compared stained and unstained cells from the same bioreactor samples, extracted
             with our trained detector. The cells are unpaired, since adding the stain disturbs their positions and the same cell cannot be
             tracked before and after staining. In PCA, t-SNE and UMAP embeddings, the two populations intermix. A k-nearest-neighbor
-            classifier trying to tell them apart stays close to chance (about 56–68%), even on the original cells, compared with about 95%
+            classifier trying to tell them apart stays close to chance (about 60–70%), even on the original cells, compared with about 97%
             for live versus dead. Their average Fourier spectra are also closely matched, indicating that staining does not substantially
             alter cell appearance in brightfield.
           </p>
@@ -366,9 +390,9 @@
       <div class="tab-panel" id="panel-classify" role="tabpanel" aria-labelledby="tab-classify" hidden>
         <div class="narrow">
           <p class="justify">
-            The classifier was trained on cells extracted from the 60 stained training images, with 80% of the cells used for training and
-            20% held out for validation. It reaches 98.64% accuracy (F1-score&nbsp;=&nbsp;0.94) on the training set and 98.10% accuracy
-            (F1-score&nbsp;=&nbsp;0.92) on the validation set, with ROC AUC values of 0.998 and 0.996, respectively. Training and validation
+            The classifier was trained on cells extracted from the 45 stained training images, with 80% of the cells used for training and
+            20% held out for validation. It reaches 98.71% accuracy (F1-score&nbsp;=&nbsp;0.94) on the training set and 98.36% accuracy
+            (F1-score&nbsp;=&nbsp;0.92) on the validation set, with ROC AUC values of 0.998 and 0.997, respectively. Training and validation
             curves track each other closely, with no sign of overfitting.
           </p>
         </div>
@@ -386,14 +410,16 @@
         <div class="narrow">
           <h3>Qualitative Comparison</h3>
           <p class="justify">
-            We compare our detector with the PLX image cytometer, a classical image-processing pipeline and pretrained Cellpose. Image
-            processing merges clumped cells, and Cellpose struggles with white (mostly dead) cells. PLX misses a noticeable number of cells,
-            yet these cells still appear in the fluorescence channels, suggesting that the omissions stem from the PLX detection algorithm
-            rather than any biological difference. Our model resolves cells even in tightly clustered regions and returns a confidence score
-            for each detected cell, which can be used to filter out low-confidence detections.
+            To assess whether task-specific training is necessary, we compare our approach against baselines representing the main
+            paradigms available for this task: (1) the Cellaca™ PLX image cytometer, whose detections also served as the reference
+            annotations for training; (2) a classical image-processing pipeline that requires no training data; and (3) the pretrained
+            <a href="https://www.biorxiv.org/content/10.1101/2025.04.28.651001v1" target="_blank" rel="noopener">Cellpose-SAM</a>, a generalist
+            foundation model applied off the shelf without fine-tuning. Our approach represents a fourth paradigm, in which detection models are
+            fine-tuned on task-specific data; we evaluated three architectures: Faster R-CNN, YOLO26, and
+            <a href="https://github.com/roboflow/rf-detr" target="_blank" rel="noopener">RF-DETR</a>.
           </p>
         </div>
-        <!-- Interactive detection viewer -->
+                <!-- Interactive detection viewer -->
         <div class="viewer">
           <div class="picker" id="det-type" aria-label="Sample type">
             <button type="button" data-type="stained" aria-pressed="true">Stained</button>
@@ -408,64 +434,75 @@
         <div class="narrow">
           <h3>Quantitative Comparison</h3>
           <p class="justify">
-            For cell counts, our method detects approximately 20% more cells than the PLX measurement on the training set. Visual inspection
-            across different samples suggests that our method is able to recover missed or inaccurate bounding boxes, which indicates that
-            training on a large set of imperfect annotations may allow a deep learning model to generalize beyond individual annotation errors.
-            However, this observation is based on visual inspection and requires further investigation to confirm. In addition, although
-            Cellpose detects slightly more cells than our method on the test set, visual inspection indicates that some of these detections
-            correspond to very small false-positive cells or large bounding boxes that do not correspond to individual cells. Overall, our
-            method achieves the best precision, recall and F1-score, with mAP&nbsp;≥&nbsp;0.9 on both the training and test sets.
+            The table below reports detection performance for all methods on stained and unstained images. For stained samples, we report
+            cell counts, precision, recall, F1-score, and mAP. For unstained samples, we report only cell counts because no reference
+            annotations are available. On the training set, our fine-tuned models detect approximately 15–20% more cells than the PLX
+            measurement. Visual inspection across different samples suggests that our models recover missed or inaccurate bounding boxes,
+            which indicates that training on a large set of imperfect annotations may allow a deep learning model to generalize beyond
+            individual annotation errors. Cellpose-SAM detects slightly more cells than our trained models, but visual inspection indicates
+            that some of these detections are very small false positives or large bounding boxes that do not correspond to individual cells.
+            Overall, the fine-tuned models achieve the best performance across all evaluation metrics, with mAP&nbsp;≥&nbsp;0.9 on both the
+            training and test sets.
           </p>
           <div class="table-scroll">
-            <table class="paper-table">
+            <table class="latex-table">
               <thead>
                 <tr>
-                  <th colspan="2" rowspan="2" class="samples">Samples</th>
-                  <th colspan="4" class="group">Total Cell Count</th>
-                  <th colspan="3" class="group">Precision / Recall / F1</th>
-                  <th class="group">mAP</th>
-                </tr>
-                <tr>
-                  <th>PLX</th><th>Img. Proc.</th><th>Cellpose</th><th>Ours</th>
-                  <th>Img. Proc.</th><th>Cellpose</th><th>Ours</th>
-                  <th>Ours</th>
+                  <th>Sample</th>
+                  <th>Metric</th>
+                  <th>PLX<br>(Reference)</th>
+                  <th>Image<br>Processing</th>
+                  <th>Cellpose-SAM<br>(zero-shot)</th>
+                  <th>Faster R-CNN<br>(fine-tuned)</th>
+                  <th>YOLO26<br>(fine-tuned)</th>
+                  <th>RF-DETR<br>(fine-tuned)</th>
                 </tr>
               </thead>
+              <!-- Training set: 45 stained samples -->
               <tbody>
-                <tr class="split-start">
-                  <td class="split">Train</td><td class="label">45 stained samples</td>
-                  <td>112,947</td><td>105,190</td><td>136,334</td><td>132,680</td>
-                  <td>0.56 / 0.52 / 0.53</td><td>0.76 / 0.89 / 0.81</td><td class="best">0.84 / 0.95 / 0.89</td>
-                  <td>0.90</td>
-                </tr>
-                <tr class="split-start">
-                  <td class="split" rowspan="2">Test</td><td class="label">30 stained samples</td>
-                  <td>32,543</td><td>29,000</td><td>33,868</td><td>33,083</td>
-                  <td>0.80 / 0.73 / 0.76</td><td>0.80 / 0.83 / 0.81</td><td class="best">0.92 / 0.95 / 0.94</td>
-                  <td>0.93</td>
-                </tr>
                 <tr>
-                  <td class="label">15 unstained samples</td>
-                  <td>NA</td><td>14,305</td><td>17,667</td><td>16,889</td>
-                  <td>NA</td><td>NA</td><td>NA</td>
-                  <td>NA</td>
+                  <td class="sample" rowspan="5">45 stained samples<br>(training set)</td>
+                  <td>Cell count</td><td>112,947</td><td>105,190</td><td>136,334</td><td>132,110</td><td>130,221</td><td>136,127</td>
+                </tr>
+                <tr><td>Precision</td><td>–</td><td>0.56</td><td>0.76</td><td>0.86</td><td class="best">0.87</td><td>0.84</td></tr>
+                <tr><td>Recall</td><td>–</td><td>0.52</td><td>0.88</td><td class="best">0.96</td><td>0.95</td><td class="best">0.96</td></tr>
+                <tr><td>F1</td><td>–</td><td>0.54</td><td>0.81</td><td class="best">0.90</td><td class="best">0.90</td><td>0.89</td></tr>
+                <tr><td>mAP</td><td>–</td><td>–</td><td>–</td><td>0.92</td><td>0.91</td><td class="best">0.93</td></tr>
+              </tbody>
+              <!-- Test set: 15 stained samples -->
+              <tbody>
+                <tr>
+                  <td class="sample" rowspan="5">15 stained samples<br>(test set)</td>
+                  <td>Cell count</td><td>8,056</td><td>7,642</td><td>8,304</td><td>8,256</td><td>8,247</td><td>8,218</td>
+                </tr>
+                <tr><td>Precision</td><td>–</td><td>0.81</td><td>0.70</td><td class="best">0.91</td><td class="best">0.91</td><td class="best">0.91</td></tr>
+                <tr><td>Recall</td><td>–</td><td>0.78</td><td>0.72</td><td>0.93</td><td class="best">0.94</td><td>0.93</td></tr>
+                <tr><td>F1</td><td>–</td><td>0.79</td><td>0.71</td><td class="best">0.92</td><td class="best">0.92</td><td class="best">0.92</td></tr>
+                <tr><td>mAP</td><td>–</td><td>–</td><td>–</td><td class="best">0.92</td><td class="best">0.92</td><td>0.91</td></tr>
+              </tbody>
+              <!-- Test set: 15 unstained samples -->
+              <tbody>
+                <tr>
+                  <td class="sample">15 unstained samples<br>(test set)</td>
+                  <td>Cell count</td><td>–</td><td>14,305</td><td>17,667</td><td>16,597</td><td>16,656</td><td>16,693</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <p class="table-caption">PLX serves as the reference. It only annotates stained samples, so unstained metrics beyond cell count are not available.</p>
+          <p class="table-caption">PLX serves as the reference. It only provides bounding-box annotations for stained samples, so unstained metrics beyond cell count are not available.</p>
 
-          <h3>Robustness across focal planes</h3>
+                    <h3>Robustness across focal planes</h3>
           <p class="justify">
-            Cell appearance can vary across focal planes, and the detection model should remain robust to such focus-dependent changes. On a
-            focal stack of the same field of view, the detector consistently finds a similar number of cells across the full focal range. 
-            The viability classifier is more sensitive to focus because it was not trained on all focal planes. This is why predicted viability 
-            drops in the most defocused planes. Note that cells move slightly during acquisition, so they are not perfectly
-            registered between planes.
+            Cell appearance can vary across focal planes, and the detection model should remain robust to such focus-dependent changes.
+            The video below shows the trained RF-DETR model on a focal stack of ten focal planes from the same field of view. The detector
+            consistently finds a similar number of cells (50&nbsp;±&nbsp;2) across the full focal range, and the other two architectures
+            behave similarly. The viability classifier is more sensitive to focus because it was not trained on all focal planes. This is
+            why predicted viability drops in the most defocused planes. Note that cells move slightly during acquisition, so they are not
+            perfectly registered between planes, and some enter or leave the field of view.
           </p>
         </div>
         <figure>
-          <video autoplay muted loop playsinline controls poster="assets/images/focal_stack.jpg"
+          <video autoplay muted loop playsinline controls
                  style="width: 100%; max-width: 500px; margin: 0 auto; display: block; border-radius: 6px;">
             <source src="assets/images/focal_stack.mp4" type="video/mp4">
           </video>
@@ -477,27 +514,27 @@
         <div class="narrow">
           <p class="justify">
             We applied the full pipeline to the 15 held-out stained/unstained pairs, using the PLX viability of each stained sample as the
-            reference for both. On <b>unstained</b> samples, ViabiLens reaches a mean absolute error of 2.68% (R²&nbsp;=&nbsp;0.85), and on
-            stained samples 3.57% (R²&nbsp;=&nbsp;0.82). Stained predictions fall slightly below PLX, likely because our detector finds extra
-            cells that tend to have lower viability. A population-level UMAP analysis reveals four morphologically distinct clusters in both
-            conditions: sharp, well-defined cells that are predominantly live (Cluster 1), featureless, translucent cells lacking internal
-            structure (Cluster 2), fuzzy, blurred cells that make up most dead cells (Cluster 3), and patches with multiple adjoining cells,
-            likely undergoing division (Cluster 4). This correspondence suggests that the visual features distinguishing live and dead cells
-            are largely preserved between stained and unstained imaging.
+            reference for both. On stained samples, ViabiLens reaches a mean absolute error of 3.57% (R²&nbsp;=&nbsp;0.82), and on
+            <b>unstained</b> samples 2.68% (R²&nbsp;=&nbsp;0.85). Stained predictions fall slightly below PLX, likely because our detector
+            finds extra cells that tend to have lower viability. A population-level UMAP analysis reveals four morphologically distinct
+            clusters in both conditions: sharp, well-defined cells that are predominantly live (Cluster 1), featureless, translucent cells
+            lacking internal structure (Cluster 2), fuzzy, blurred cells that make up most dead cells (Cluster 3), and patches with multiple
+            adjoining cells, likely undergoing division (Cluster 4). This correspondence suggests that the visual features distinguishing
+            live and dead cells are largely preserved between stained and unstained imaging.
           </p>
         </div>
-        <figure>
-          <img src="assets/images/viability_unstained.jpg" alt="Predicted vs. measured viability and UMAP clusters for unstained samples">
-          <figcaption>
-            <b>Unstained samples.</b> Left: predicted viability vs. PLX measurement on the paired stained sample. Right: UMAP of cells
-            labeled by the CNN, with example cells from each cluster below.
-          </figcaption>
-        </figure>
         <figure>
           <img src="assets/images/viability_stained.jpg" alt="Predicted vs. measured viability and UMAP clusters for stained samples">
           <figcaption>
             <b>Stained samples.</b> Left: predicted viability vs. PLX measurement. Right: UMAP of cells labeled by PLX, with example cells
             from each cluster below.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="assets/images/viability_unstained.jpg" alt="Predicted vs. measured viability and UMAP clusters for unstained samples">
+          <figcaption>
+            <b>Unstained samples.</b> Left: predicted viability vs. PLX measurement on the paired stained sample. Right: UMAP of cells
+            labeled by the CNN, with example cells from each cluster below.
           </figcaption>
         </figure>
       </div>
