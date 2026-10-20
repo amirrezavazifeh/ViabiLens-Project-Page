@@ -199,7 +199,7 @@
 
       <!-- arXiv, Software Demo and Code still need real links -->
       <div class="links">
-        <a href="">
+        <a href="https://arxiv.org/abs/2610.10473">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6V2zm8 1.5V8h4.5L14 3.5zM8 12h8v1.5H8V12zm0 3h8v1.5H8V15zm0 3h5v1.5H8V18z"/></svg>
           arXiv
         </a>
@@ -239,7 +239,7 @@
           ViabiLens combines a cell detection model for localizing individual cells with a convolutional neural network (CNN) classifier for 
           live/dead prediction, paired with an interactive UMAP-based viewer for visualizing and exploring individual cells across the sample.
           Evaluated on Chinese Hamster Ovary (CHO) cells spanning a wide range of viability conditions, ViabiLens achieves a mean absolute
-          error of 2.68% on unstained samples against fluorescence-based reference measurements.
+          error of 2.33% on unstained samples against fluorescence-based reference measurements.
         </p>
       </div>
       <figure>
@@ -514,8 +514,8 @@
         <div class="narrow">
           <p class="justify">
             We applied the full pipeline to the 15 held-out stained/unstained pairs, using the PLX viability of each stained sample as the
-            reference for both. On stained samples, ViabiLens reaches a mean absolute error of 3.57% (R²&nbsp;=&nbsp;0.82), and on
-            <b>unstained</b> samples 2.68% (R²&nbsp;=&nbsp;0.85). Stained predictions fall slightly below PLX, likely because our detector
+            reference for both. On stained samples, ViabiLens reaches a mean absolute error of 2.59% (R²&nbsp;=&nbsp;0.88), and on
+            <b>unstained</b> samples 2.33% (R²&nbsp;=&nbsp;0.87). Stained predictions fall slightly below PLX, likely because our detector
             finds extra cells that tend to have lower viability. A population-level UMAP analysis reveals four morphologically distinct
             clusters in both conditions: sharp, well-defined cells that are predominantly live (Cluster 1), featureless, translucent cells
             lacking internal structure (Cluster 2), fuzzy, blurred cells that make up most dead cells (Cluster 3), and patches with multiple
@@ -605,7 +605,7 @@
         <h2>Software</h2>
         <p class="justify">
           To facilitate assessment and interactive benchmarking of the pipeline, we developed
-          <a href="#" target="_blank" rel="noopener"><b>ViabiLens</b></a>, an interactive HTML-based platform. It visualizes different
+          <a href="https://amirrezavazifeh.github.io/ViabiLens/" target="_blank" rel="noopener"><b>ViabiLens</b></a>, an interactive HTML-based platform. It visualizes different
           imaging modalities side by side with adjustable brightness, contrast, and magnification, and overlays detected cells from all
           four methods for direct comparison. A UMAP projection of the sample shows AI-predicted viability, where hovering over a point
           previews that cell, and a summary table reports sample-level viability. Beyond its utility as a research tool for testing and
