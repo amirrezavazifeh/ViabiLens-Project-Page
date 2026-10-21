@@ -282,9 +282,12 @@
         <h3>Cell detection</h3>
         <p class="justify">
           Because the dataset provides bounding boxes, we trained an <a href="https://github.com/roboflow/rf-detr" target="_blank" rel="noopener">RF-DETR</a>
-          object detector, pretrained on the COCO dataset and fine-tuned to separate cells from background using the PLX bounding boxes as
-          ground truth. Training on full-resolution images performed poorly because each cell occupies only a few pixels of a large image.
-          We therefore divided each training image into overlapping crops, so that cells take up a meaningful share of each input.
+          object detector, pretrained on the COCO dataset and fine-tuned to separate cells from background.
+          Training on full-resolution images performed poorly because each cell occupies only a few pixels of a large image.
+          We therefore divided each image into 100 overlapping crops of 260&nbsp;&times;&nbsp;348 pixels, so that cells take up a meaningful
+          share of each input. The training set consisted of 45 stained images, giving 4,500 crops in total, with the bounding-box
+          annotations provided by PLX serving as ground-truth labels. The crops are publicly available on
+          <a href="https://huggingface.co/datasets/amirrezav1378/viabilens-cell-detection" target="_blank" rel="noopener">Hugging Face</a>.
         </p>
         <p class="justify">
           At inference, the full image is split into overlapping crops of the same size used in training, and the detector runs on each crop
