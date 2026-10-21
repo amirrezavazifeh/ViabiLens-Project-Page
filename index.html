@@ -500,11 +500,13 @@
                     <h3>Robustness across focal planes</h3>
           <p class="justify">
             Cell appearance can vary across focal planes, and the detection model should remain robust to such focus-dependent changes.
-            The videos below show the trained RF-DETR model on two focal stacks, each with ten focal planes from a single field of view. The detector
-            consistently finds a similar number of cells (50&nbsp;±&nbsp;2) across the full focal range, and the other two architectures
-            behave similarly. The viability classifier is more sensitive to focus because it was not trained on all focal planes. This is
-            why predicted viability drops in the most defocused planes. Note that cells move slightly during acquisition, so they are not
-            perfectly registered between planes, and some enter or leave the field of view.
+            The videos below show the trained RF-DETR model on two focal stacks, each covering a range of focal planes from a single field
+            of view. In both stacks, the detector remains robust across almost all focal planes and finds a consistent number of cells, and
+            the other two architectures behave similarly. Detection may fail only when cells become completely out of focus. The viability
+            classifier is more sensitive to focus because it was not trained on all focal planes, which is why predicted viability drops in
+            the most defocused planes. For reliable AI predictions, the focal plane used at inference should therefore match the one used
+            during training. Note that cells move slightly during acquisition, so they are not perfectly registered between planes, and some
+            enter or leave the field of view.
           </p>
         </div>
         <figure>
