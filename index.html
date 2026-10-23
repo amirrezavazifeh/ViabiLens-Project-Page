@@ -206,18 +206,18 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6V2zm8 1.5V8h4.5L14 3.5zM8 12h8v1.5H8V12zm0 3h8v1.5H8V15zm0 3h5v1.5H8V18z"/></svg>
           arXiv
         </a>
-        <a href="https://amirrezavazifeh.github.io/ViabiLens/">
+        <a href="https://amirrezavazifeh.github.io/ViabiLens-Demo/">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v12H3V4zm2 2v8h14V6H5zm3 12h8v2H8v-2z"/></svg>
           Software Demo
         </a>
-        <a href="https://huggingface.co/datasets/amirrezav1378/viabilens-raw-data">
+        <!-- <a href="https://huggingface.co/datasets/amirrezav1378/viabilens-raw-data">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C7 2 3 3.8 3 6v12c0 2.2 4 4 9 4s9-1.8 9-4V6c0-2.2-4-4-9-4zm0 2c4.4 0 7 1.4 7 2s-2.6 2-7 2-7-1.4-7-2 2.6-2 7-2zM5 9.2C6.6 10 9.2 10.5 12 10.5s5.4-.5 7-1.3V12c0 .6-2.6 2-7 2s-7-1.4-7-2V9.2zm0 6C6.6 16 9.2 16.5 12 16.5s5.4-.5 7-1.3V18c0 .6-2.6 2-7 2s-7-1.4-7-2v-2.8z"/></svg>
           Dataset
         </a>
         <a href="https://github.com/amirrezavazifeh/ViabiLens">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17 4.6 18 5 18 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>
           Code
-        </a>
+        </a> -->
       </div>
     </div>
   </header>
@@ -238,7 +238,7 @@
         </p>
         <p class="justify">
           <!-- Replace # with the ViabiLens link -->
-          Here, we report the development and validation of <a href="https://amirrezavazifeh.github.io/ViabiLens/" target="_blank" rel="noopener"><b>ViabiLens</b></a>, AI-assisted software for label-free cell viability analysis. 
+          Here, we report the development and validation of <a href="https://amirrezavazifeh.github.io/ViabiLens-Demo/" target="_blank" rel="noopener"><b>ViabiLens</b></a>, AI-assisted software for label-free cell viability analysis. 
           ViabiLens combines a cell detection model for localizing individual cells with a convolutional neural network (CNN) classifier for 
           live/dead prediction, paired with an interactive UMAP-based viewer for visualizing and exploring individual cells across the sample.
           Evaluated on Chinese Hamster Ovary (CHO) cells spanning a wide range of viability conditions, ViabiLens achieves a mean absolute
@@ -278,8 +278,6 @@
           45 stained images from the first run. From the second run, we acquired 15 stained images, each paired with an unstained brightfield
           image captured immediately before dye addition (unstained images have no fluorescence channels or annotations). These 15
           stained/unstained pairs form a held-out test set that was never used at any stage of training.
-          <!-- Replace # with the dataset link -->
-          The dataset is publicly available <a href="https://huggingface.co/datasets/amirrezav1378/viabilens-raw-data" target="_blank" rel="noopener">here</a>.
         </p>
 
         <h3>Cell detection</h3>
@@ -289,8 +287,7 @@
           Training on full-resolution images performed poorly because each cell occupies only a few pixels of a large image.
           We therefore divided each image into 100 overlapping crops of 260&nbsp;&times;&nbsp;348 pixels, so that cells take up a meaningful
           share of each input. The training set consisted of 45 stained images, giving 4,500 crops in total, with the bounding-box
-          annotations provided by PLX serving as ground-truth labels. The crops are publicly available on
-          <a href="https://huggingface.co/datasets/amirrezav1378/viabilens-cell-detection" target="_blank" rel="noopener">Hugging Face</a>.
+          annotations provided by PLX serving as ground-truth labels. 
         </p>
         <p class="justify">
           At inference, the full image is split into overlapping crops of the same size used in training, and the detector runs on each crop
@@ -366,7 +363,7 @@
         </div>
         <figure>
           <img src="assets/images/phenotyping.jpg" alt="UMAP clusters with representative cell patches">
-          <figcaption><b>UMAP clusters with example cells.</b> Green and yellow frames mark live and dead labels, respectively.</figcaption>
+          <figcaption><b>UMAP clusters with example cells.</b> Green and orange frames mark live and dead labels, respectively.</figcaption>
         </figure>
       </div>
 
@@ -558,11 +555,12 @@
             To test whether the approach carries over to other hardware, we repeated the experiments on a higher-resolution Zeiss microscope.
           </p>
           <p class="justify">
-            <b>Dataset.</b> Samples were taken from a fed-batch bioreactor culture over two weeks (days 1, 4, 6, 8, 11, 12, 13 and 14) and
-            imaged on a Zeiss Axio Observer microscope (EC Plan-Neofluar 10×/0.30 Ph1 objective) at a resolution of
-            9684&nbsp;×&nbsp;11604&nbsp;pixels. Each sample was captured in brightfield, phase contrast and reflected brightfield at five focal
-            planes, with the middle plane in focus, giving 11 stained and 15 unstained images in total. For stained samples, two fluorescence
-            channels (AO and PI) provide live/dead labels.
+            <b>Dataset.</b> Samples were taken from two fed-batch cultures (V1 and V2), run in parallel as biological replicates in separate
+            3&nbsp;L bioreactors, over two weeks (days 1, 4, 6, 8, 12, 13 and 14). They were imaged on a Zeiss Axio Observer microscope
+            (EC Plan-Neofluar 10×/0.30 Ph1 objective) at a resolution of 9684&nbsp;×&nbsp;11604&nbsp;pixels. Each sample was captured in
+            brightfield, phase contrast and reflected brightfield at five focal planes, with the middle plane in focus. Stained samples (AO-PI)
+            also include two fluorescence channels (AO for live, PI for dead cells), and each sample's viability was measured independently
+            with the PLX image cytometer.
           </p>
         </div>
         <figure class="medium">
@@ -574,14 +572,17 @@
         </figure>
         <div class="narrow">
           <p class="justify">
-            <b>Cell detection.</b> Since Cellpose already performs well on this dataset, we used it for detection instead of training a
-            dedicated detector. Bounding boxes from the in-focus brightfield plane were applied to all modalities and focal planes, so the
-            same cells are used throughout, giving 85,504 stained cells in total.
+            <b>Cell detection and labeling.</b> Since Cellpose-SAM already performs well on this dataset, we used it for detection instead of
+            training a dedicated detector. Bounding boxes from the in-focus brightfield plane were applied to all modalities and focal planes,
+            so the same cells are used throughout, giving 85,304 stained and 199,914 unstained cells. A stained cell is labeled dead if its PI
+            signal exceeds its AO signal by more than a threshold, chosen so that each sample's resulting viability best matches the PLX
+            measurement.
           </p>
           <p class="justify">
-            <b>Cell classification.</b> The cells were split into 80% for training and 20% for validation. Unlike the PLX pipeline, which uses
-            brightfield only, the classifier takes both brightfield and phase images of each cell as input. It reaches 96.06% training
-            accuracy (F1-score&nbsp;=&nbsp;0.89) and 95.28% validation accuracy (F1-score&nbsp;=&nbsp;0.87).
+            <b>Cell classification.</b> The classifier was trained only on stained cells from V1 (43,096 cells, split 90% training and 10%
+            validation). Unlike the PLX pipeline, which uses brightfield only, it takes brightfield and phase images from all five focal planes
+            as input. It reaches 95.20% training accuracy (F1-score&nbsp;=&nbsp;0.90) and 95.22% validation accuracy
+            (F1-score&nbsp;=&nbsp;0.90), with an AUC of 0.981.
           </p>
         </div>
         <figure>
@@ -593,18 +594,20 @@
         </figure>
         <div class="narrow">
           <p class="justify">
-            <b>End-to-end evaluation.</b> The same samples were also imaged on the PLX image cytometer, and its reported viability serves as
-            the reference measurement. On the 11 stained images, predicted viability matches the PLX measurement with a mean absolute error
-            of 2.06% (R²&nbsp;=&nbsp;0.94). On the 15 unstained images, which were held out from training, the mean absolute error is 3.08%
-            (R²&nbsp;=&nbsp;0.83). In the UMAP embeddings, live and dead cells form clearly separated clusters for stained samples. For
-            unstained samples, predicted dead cells still tend to cluster together, suggesting that the classifier generalizes beyond stained
-            data.
+            <b>End-to-end evaluation.</b> On the 11 stained samples, the reference viability comes from the fluorescence-derived labels,
+            checked against the PLX measurements. The mean absolute error is 2.07% on the six V1 training samples and 2.02% on the five
+            held-out V2 samples, showing that the model generalizes across independent cultures. On the 12 unstained samples, none used in
+            training, the reference is the stained sample from the same vessel and day (or the PLX measurement where no stained Zeiss data
+            exists). The mean absolute error is 1.78% for V1 and 3.04% for V2, with the largest deviations at lower viabilities (days 12–14),
+            where the model tends to underestimate. In the UMAP embeddings, live and dead stained cells form clearly separated clusters in
+            brightfield, with more overlap in phase. For unstained samples, predicted dead cells still cluster together, suggesting that the
+            classifier generalizes beyond stained data.
           </p>
         </div>
         <figure>
-          <img src="assets/images/zeiss_viability.jpg" alt="Predicted vs. measured viability and UMAP projections for Zeiss stained and unstained samples">
+          <img src="assets/images/zeiss_viability.jpg" alt="Predicted vs. reference viability and UMAP projections for Zeiss stained and unstained samples">
           <figcaption>
-            <b>Zeiss viability results.</b> Left: predicted viability vs. PLX measurement for stained (top) and unstained (bottom) samples.
+            <b>Zeiss viability results.</b> Left: predicted vs. reference viability for stained (top) and unstained (bottom) samples.
             Right: UMAP projections of live and dead cells in brightfield and phase.
           </figcaption>
         </figure>
@@ -617,7 +620,7 @@
         <h2>Software</h2>
         <p class="justify">
           To facilitate assessment and interactive benchmarking of the pipeline, we developed
-          <a href="https://amirrezavazifeh.github.io/ViabiLens/" target="_blank" rel="noopener"><b>ViabiLens</b></a>, an interactive HTML-based platform. It visualizes different
+          <a href="https://amirrezavazifeh.github.io/ViabiLens-Demo/" target="_blank" rel="noopener"><b>ViabiLens</b></a>, an interactive HTML-based platform. It visualizes different
           imaging modalities side by side with adjustable brightness, contrast, and magnification, and overlays detected cells from all
           four methods for direct comparison. A UMAP projection of the sample shows AI-predicted viability, where hovering over a point
           previews that cell, and a summary table reports sample-level viability. Beyond its utility as a research tool for testing and
