@@ -346,16 +346,16 @@
       <h2>Results</h2>
 
       <div class="tabs" role="tablist" aria-label="Results">
-        <button role="tab" id="tab-livedead" aria-selected="true"  aria-controls="panel-livedead">Live/Dead Differences</button>
+        <button role="tab" id="tab-livedead" aria-selected="false" aria-controls="panel-livedead">Live/Dead Differences</button>
         <button role="tab" id="tab-stained"  aria-selected="false" aria-controls="panel-stained">Stained/Unstained Differences</button>
         <button role="tab" id="tab-classify" aria-selected="false" aria-controls="panel-classify">Classification Performance</button>
-        <button role="tab" id="tab-detect"   aria-selected="false" aria-controls="panel-detect">Cell Detection Performance</button>
+        <button role="tab" id="tab-detect"   aria-selected="true"  aria-controls="panel-detect">Cell Detection Performance</button>
         <button role="tab" id="tab-e2e"      aria-selected="false" aria-controls="panel-e2e">End-to-End Evaluation</button>
         <button role="tab" id="tab-zeiss"    aria-selected="false" aria-controls="panel-zeiss">Generalization Under Different Imaging</button>
       </div>
 
       <!-- ---------- Live/Dead ---------- -->
-      <div class="tab-panel" id="panel-livedead" role="tabpanel" aria-labelledby="tab-livedead">
+      <div class="tab-panel" id="panel-livedead" role="tabpanel" aria-labelledby="tab-livedead" hidden>
         <div class="narrow">
           <p class="justify">
             A key assumption of our approach is that live and dead cells look different enough in brightfield for a model to tell them apart.
@@ -432,7 +432,7 @@
       </div>
 
       <!-- ---------- Cell Detection ---------- -->
-      <div class="tab-panel" id="panel-detect" role="tabpanel" aria-labelledby="tab-detect" hidden>
+      <div class="tab-panel" id="panel-detect" role="tabpanel" aria-labelledby="tab-detect">
         <div class="narrow">
           <h3>Qualitative Comparison</h3>
           <p class="justify">
